@@ -1,28 +1,25 @@
 import http from "k6/http";
 import { sleep } from "k6";
 
-const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0MjYzYWI4N2NiYTkzOGE5NWJkYjQxYiIsImlhdCI6MTY4NTcxNTQ5NiwiZXhwIjoxNjg1NzE2Mzk2fQ.fOWWm-UlVMYv-2j62BT_yUZfpXOWRY_0MX0NtSFAelA";
-const adminAccessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0MjZjODNiM2ExNTE5YWNjNzYxMzM5ZCIsImlhdCI6MTY4NTcwMTA5NCwiZXhwIjoxNjg1NzAxOTk0fQ.sJs8ciZNzFOU0hqPl2iQpXK2VzgVgJqFGgtlo8Wjwig";
+const accessToken = "";
 
-// // Smoke Testing
+// Smoke Testing
 // export const options = {
 //   vus: 1,
 //   duration: "10s",
 // };
 
 // Load Testing
-export const options = {
-  stages: [
-    { duration: "5m", target: 100 },
-    { duration: "10m", target: 100 },
-    { duration: "5m", target: 0 },
-  ],
-  thresholds: {
-    http_req_duration: ["p(99)<1500"],
-  },
-};
+// export const options = {
+//   stages: [
+//     { duration: "5m", target: 100 },
+//     { duration: "10m", target: 100 },
+//     { duration: "5m", target: 0 },
+//   ],
+//   thresholds: {
+//     http_req_duration: ["p(99)<1500"],
+//   },
+// };
 
 // Stress testing
 // export const options = {
@@ -42,13 +39,13 @@ export const options = {
 // Spike Testing
 // export const options = {
 //   stages: [
-//     { duration: '10s', target: 100 },
-//     { duration: '1m', target: 100 },
-//     { duration: '10s', target: 3000 },
-//     { duration: '3m', target: 3000 },
-//     { duration: '10s', target: 100 },
-//     { duration: '3m', target: 100 },
-//     { duration: '10s', target: 0 },
+//     { duration: "10s", target: 100 },
+//     { duration: "1m", target: 100 },
+//     { duration: "10s", target: 3000 },
+//     { duration: "3m", target: 3000 },
+//     { duration: "10s", target: 100 },
+//     { duration: "3m", target: 100 },
+//     { duration: "10s", target: 0 },
 //   ],
 // };
 
@@ -75,277 +72,214 @@ export const options = {
 // };
 
 export default function () {
-  const queries = [
+  // Query dashboard API for month change stats
+  const dashBoardQuery = `
     {
-      name: "Dashboard Query",
-      query: `
-        {
-          getPartnerMonthChangeStats {
-            userTotal {
-              currentMonth
-              lastMonth
-            }
-            userTargeted {
-              currentMonth
-              lastMonth
-            }
-            userReached {
-              currentMonth
-              lastMonth
-            }
-            surveyTargeted {
-              currentMonth
-              lastMonth
-            }
-            surveyReached {
-              currentMonth
-              lastMonth
-            }
-            surveyTotalSpent {
-              currentMonth
-              lastMonth
-            }
-            offerTargeted {
-              currentMonth
-              lastMonth
-            }
-            offerReached {
-              currentMonth
-              lastMonth
-            }
-            offerTotalSpent {
-              currentMonth
-              lastMonth
-            }
-            appEngagement {
-              currentMonth
-              lastMonth
-            }
-            appActivity {
-              currentMonth
-              lastMonth
-            }
-            platFormActivity {
-              currentMonth
-              lastMonth
-            }
+      getPartnerMonthChangeStats {
+        userTotal {
+          currentMonth
+          lastMonth
+        }
+      }
+    }
+  `;
+
+  // Find partner offer ads
+  const offerAdsQuery = `
+  {
+    findPartnerOfferAds(input:{status:3}) {
+      offerAds {
+        createdAt
+        updatedAt
+        deletedAt
+        id
+        partner
+        title
+        type
+        validFrom
+        validTo
+        status
+        offerCode
+        websiteLink
+        shortDescription
+        description
+        expectedViewsCount
+        rewardPerUser
+        totalTokenRequired
+        comment
+        subtitle
+        paymentStatus
+        media{
+          url
+          type
+          usageType
+        }
+      }
+      total
+      page
+      limit
+      stats{
+        total
+        activeTotal
+        inactiveTotal
+        rejectedTotal
+        pendingTotal
+      }
+    }
+  }
+  `;
+
+  // Find Surveys
+  const surveysQuery = `
+    {
+      findPartnerSurveys(input: {}) {
+        surveys {
+          createdAt
+          updatedAt
+          deletedAt
+          id
+          name
+          partner
+          audienceSize
+          publishDate
+          endDate
+          expectedAnswersCount
+          rewardsPerUser
+          totalTokensRequired
+          status
+          comment
+          paymentStatus
+          questionGroup
+          featured
+        }
+        total
+        page
+        limit
+      }
+    }
+  `;
+
+  //Find Five a day survey list
+  const fiveADayQuery = `
+    {
+      findAllQuestionGroup(input: {}) {
+        questionGroups {
+          createdAt
+          updatedAt
+          deletedAt
+          id
+          name
+          status
+          groupType
+          questions {
+            text
+          }
+          responseCount
+        }
+        total
+        page
+      }
+    }
+  `;
+
+  const surveyStatQuery = `
+    {
+      findOneSurveyStats(input: { id: "643e3e3460d67eb72ec539b0" }) {
+        questionsStats {
+          id
+          text
+          type
+          responseStats {
+            option
+            count
           }
         }
-      `,
-    },
-    {
-      name: "Find Partner Offer Ads",
-      query: `
-        {
-          findPartnerOfferAds(input:{status:3}) {
-            offerAds {
-              createdAt
-              updatedAt
-              deletedAt
-              id
-              partner
-              title
-              type
-              validFrom
-              validTo
-              status
-              offerCode
-              websiteLink
-              shortDescription
-              description
-              expectedViewsCount
-              rewardPerUser
-              totalTokenRequired
-              comment
-              subtitle
-              paymentStatus
-              media{
-                url
-                type
-                usageType
-              }
-            }
-            total
-            page
-            limit
-            stats{
-              total
-              activeTotal
-              inactiveTotal
-              rejectedTotal
-              pendingTotal
-            }
-          }
+        totalResponseCount
+        textQuestionsStats {
+          id
+          text
+          type
+          response
         }
-      `,
-    },
+      }
+    }
+  `;
+
+  // Data purchase list query
+  const dataPurchaseQuery = `
     {
-      name: "Find Surveys",
-      query: `
-        {
-          findPartnerSurveys(input: {}) {
-            surveys {
-              createdAt
-              updatedAt
-              deletedAt
-              id
-              name
-              partner
-              audienceSize
-              publishDate
-              endDate
-              expectedAnswersCount
-              rewardsPerUser
-              totalTokensRequired
-              status
-              comment
-              paymentStatus
-              questionGroup
-              featured
-            }
-            total
-            page
-            limit
-          }
+      findAllDataPurchase(input: {}) {
+        total
+        totalPages
+        page
+        limit
+        dataPurchases {
+          createdAt
+          updatedAt
+          deletedAt
+          id
+          name
+          dataFrom
+          dataTo
+          numOfUsers
+          status
+          stage
+          owner
+          ownerEmail
+          users
+          userCount
+          versionKey
+          relationType
+          fileUrl
+          isPaymentDone
+          dataPurchaseKey
+          partnerName
         }
-      `,
-    },
+      }
+    }
+  `;
+
+  // Target audience list query
+  const targetAudienceQuery = `
     {
-      name: "Find Five a day survey list",
-      query: `
-        {
-          findAllQuestionGroup(input: {}) {
-            questionGroups {
-              createdAt
-              updatedAt
-              deletedAt
-              id
-              name
-              status
-              groupType
-              questions {
-                text
-              }
-              responseCount
-            }
-            total
-            page
-          }
+      findPartnerTargetAudience(input: { page: 1 }) {
+        targetAudiences {
+          createdAt
+          updatedAt
+          deletedAt
+          id
+          name
+          shortNote
+          status
+          owner
+          userCount
+          versionKey
         }
-      `,
-      accessToken: adminAccessToken, // Use admin access token for this query
-    },
-    {
-      name: "Survey Statistics",
-      query: `
-        {
-          findOneSurveyStats(input: { id: "643e3e3460d67eb72ec539b0" }) {
-            questionsStats {
-              id
-              text
-              type
-              responseStats {
-                option
-                count
-              }
-            }
-            totalResponseCount
-            textQuestionsStats {
-              id
-              text
-              type
-              response
-            }
-          }
-        }
-      `,
-    },
-    {
-      name: "Data Purchase List",
-      query: `
-        {
-          findAllDataPurchase(input: {}) {
-            total
-            totalPages
-            page
-            limit
-            dataPurchases {
-              createdAt
-              updatedAt
-              deletedAt
-              id
-              name
-              dataFrom
-              dataTo
-              numOfUsers
-              status
-              stage
-              owner
-              ownerEmail
-              users
-              userCount
-              versionKey
-              relationType
-              fileUrl
-              isPaymentDone
-              dataPurchaseKey
-              partnerName
-            }
-          }
-        }
-      `,
-    },
-    {
-      name: "Target Audience List",
-      query: `
-        {
-          findPartnerTargetAudience(input: { page: 1 }) {
-            targetAudiences {
-              createdAt
-              updatedAt
-              deletedAt
-              id
-              name
-              shortNote
-              status
-              owner
-              userCount
-              versionKey
-            }
-            total
-            page
-            limit
-          }
-        }
-      `,
-    },
-  ];
+        total
+        page
+        limit
+      }
+    }
+  `;
 
   const headers = {
+    Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
   };
 
-  queries.forEach((query) => {
-    const headersWithToken = query.accessToken
-      ? Object.assign({}, headers, {
-          Authorization: `Bearer ${query.accessToken}`,
-        })
-      : Object.assign({}, headers, {
-          Authorization: `Bearer ${accessToken}`,
-        });
+  const res = http.post(
+    "https://api-dev.goodhuman.xyz/graphql",
+    JSON.stringify({ query: dashBoardQuery }),
+    {
+      headers: headers,
+    }
+  );
 
-    const res = http.post(
-      "https://api-dev.goodhuman.xyz/graphql",
-      JSON.stringify({ query: query.query }),
-      {
-        headers: headersWithToken,
-        tags: { name: query.name },
-      }
-    );
+  if (res.status == 200) {
+    console.log(JSON.stringify(res.body));
+    const body = JSON.parse(res.body);
+    console.log(body);
+  }
 
-    console.log(`Response for ${query.name}: ${res.status}`);
-    console.log(res.body);
-
-    sleep(0.3);
-  });
+  sleep(0.3);
 }

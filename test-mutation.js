@@ -1,10 +1,8 @@
 import http from "k6/http";
 import { sleep } from "k6";
 
-const accessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0MjYzYWI4N2NiYTkzOGE5NWJkYjQxYiIsImlhdCI6MTY4NTcxNTQ5NiwiZXhwIjoxNjg1NzE2Mzk2fQ.fOWWm-UlVMYv-2j62BT_yUZfpXOWRY_0MX0NtSFAelA";
-const adminAccessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0M2U3YjcxMWQ3NGFlMjljYWRhMTQ3NCIsImlhdCI6MTY4NTcwODg5MywiZXhwIjoxNjg1NzA5NzkzfQ.ZioLNEQL8Ka1iutk8pJAkLksEcdiei-eyMDLt4zDVIA";
+const accessToken = "";
+const adminAccessToken = "";
 
 // Load Testing
 // export const options = {
